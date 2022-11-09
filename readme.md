@@ -1,0 +1,1 @@
+### Paper Title: Mul-Graph: A Graph Anomaly Detection Framework via Aggreating Mul-view information

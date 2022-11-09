@@ -1,0 +1,3 @@
+data/*
+checkpoint.pt
+__pycache__/*
