@@ -1,17 +1,48 @@
-import torch.nn as nn
-from graphcnn import GraphCNN 
-import torch.nn.functional as F
 import sys
-sys.path.append("models/")
+sys.path.append("..")
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from utils import anomaly_weight
+from sklearn.metrics import roc_auc_score
 
 class Classifier(nn.Module):
-    def __init__(self, num_layers, num_mlp_layers, input_dim, hidden_dim, final_dropout, neighbor_pooling_type, device):
-        super(Classifier, self).__init__()
-        self.gin = GraphCNN(num_layers, num_mlp_layers, input_dim, hidden_dim, neighbor_pooling_type, device)
-        self.linear_prediction = nn.Linear(hidden_dim, 1)
-        self.final_dropout = final_dropout
-        
-    def forward(self, seq1, adj):
-        h_1 = self.gin(seq1, adj)
-        score_final_layer = F.dropout(self.linear_prediction(h_1), self.final_dropout, training = self.training)
-        return score_final_layer
+    
+    def __init__(self, h_feats, number_class, graph) -> None:
+        """graph is pyg graph. graph here to get the train_mask, val_mask and test_mask
+        """
+        super().__init__()
+        self.a_weight = anomaly_weight(graph)
+        self.device = graph.x.device
+        self.linear = nn.Linear(h_feats, number_class)
+    
+    def train_loss(self, hiddle):
+        logits = self.linear(hiddle)
+        train_loss = F.cross_entropy(logits[self.graph.train_mask], self.graph.y[self.graph.train_mask], weight=torch.tensor([1.0, self.a_weight],device=self.device))
+        # return logits to compute auc
+        return train_loss
+
+    def forward(self, hiddle):
+        return self.train_loss(self, hiddle)
+
+    
+    def val_loss_auc(self, hiddle):
+        logits = self.linear(hiddle)
+        val_loss = F.cross_entropy(logits[self.graph.val_mask], self.graph.y[self.graph.val_mask], weight=torch.tensor([1.0, self.a_weight],device=self.device))
+        probs = logits.softmax(1)
+        auc = roc_auc_score(self.graph.y[self.graph.val_mask].cpu().numpy(), probs[self.graph.val_mask][:,1].detach().cpu().numpy()) if self.graph.y.is_cuda else \
+            roc_auc_score(self.graph.y[self.graph.val_mask].numpy(), probs[self.graph.val_mask][:,1].detach().numpy())
+        # return logits to compute auc
+        return val_loss, auc
+
+    def test_auc(self, hiddle):
+        logits = self.linear(hiddle)
+        probs = logits.softmax(1)
+        auc = roc_auc_score(self.graph.y[self.graph.test_mask].cpu().numpy(), probs[self.graph.test_mask][:,1].detach().cpu().numpy()) if self.graph.y.is_cuda else \
+            roc_auc_score(self.graph.y[self.graph.test_mask].numpy(), probs[self.graph.test_mask][:,1].detach().numpy())
+        # return logits to compute auc
+        return auc
+    
+
+
+    
