@@ -15,6 +15,7 @@ class Classifier(nn.Module):
         self.a_weight = anomaly_weight(graph)
         self.device = graph.x.device
         self.linear = nn.Linear(h_feats, number_class)
+        self.graph = graph
     
     def train_loss(self, hiddle):
         logits = self.linear(hiddle)
@@ -23,7 +24,7 @@ class Classifier(nn.Module):
         return train_loss
 
     def forward(self, hiddle):
-        return self.train_loss(self, hiddle)
+        return self.train_loss(hiddle)
 
     
     def val_loss_auc(self, hiddle):
