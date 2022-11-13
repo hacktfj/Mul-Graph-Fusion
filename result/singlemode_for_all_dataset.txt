@@ -1,0 +1,1 @@
+Single Mode: model name bwgnn; dataset cora; loss_oriented label_oriented; anomaly type min; test auc mean 0.9268376795162508; test auc std 0.026445258393989073; best val auc mean 0.9243788019383443

@@ -139,23 +139,31 @@ class Fusion_model(nn.Module):
         if self.loss_oriented == "label_oriented" or self.loss_oriented == "reconstruction_oriented":
             early_stop = EarlyStopping(patience=patience)
             for epoch in range(self.epochs_fit):
-                self.model.train()
                 self.loss.train()
-                _, hiddle = self.model(self.graph.x)
-
+                hiddle_list = []
+                for model in self.model_list:
+                    model.train()
+                    _, hiddle = model(self.graph.x)
+                    hiddle_list.append(hiddle)
+                hiddle = self.fusion_feature(hiddle_list, self.fusion_strategy)
                 train_loss = self.loss(hiddle)
-                self.optimizer.zero_grad()
+
+                [optimizer.zero_grad() for optimizer in self.optimizer_list]
+                if self.fusion_strategy == 2 or self.fusion_strategy == 3:
+                    self.balance_optimizer.zero_grad()
                 self.loss_optimizer.zero_grad()
                 train_loss.backward()
-                self.optimizer.step()
+                [optimizer.step() for optimizer in self.optimizer_list]
+                if self.fusion_strategy == 2 or self.fusion_strategy == 3:
+                    self.balance_optimizer.step()
                 self.loss_optimizer.step()
 
-                early_stop(train_loss, self.model)
+                early_stop(train_loss)
                 if early_stop.early_stop == True:
                     print ("Early stopping")
                     break
                 if self.verbose:
-                    print (f"Stage one, Model name: {self.model_name}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fit}, Training loss: {train_loss}")
+                    print (f"Stage one, Model name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fit}, Training loss: {train_loss}")
         elif self.loss_oriented == "ssl_oriented":
             kmeans = KMeans(n_clusters=self.num_classes, random_state=0).fit(self.graph.x)
             ss_label = kmeans.labels_
@@ -165,7 +173,7 @@ class Fusion_model(nn.Module):
             early_stop = EarlyStopping(patience=patience)
 
             for epoch in range(self.epochs_fit):
-                print (f"balance weight: {self.balance_weight}")
+                # print (f"balance weight: {self.balance_weight}")
                 self.loss.train()
                 hiddle1_list = []
                 hiddle2_list = []
@@ -211,7 +219,7 @@ class Fusion_model(nn.Module):
                     print ("Early stopping")
                     break
                 if self.verbose:
-                    print (f"Stage one, Model list name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fit}, Training loss: {train_loss}")
+                    print (f"Stage one, Model list name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch+1}/{self.epochs_fit}, Training loss: {train_loss}")
 
     def fine_tuning(self, patience=20):
         if self.loss_oriented == "label_oriented" or self.loss_oriented == "reconstruction_oriented" or self.loss_oriented == "ssl_oriented":
@@ -238,7 +246,7 @@ class Fusion_model(nn.Module):
                     self.balance_optimizer.step()
                 self.clf_optimizer.step()
                 if self.verbose:
-                    print (f"Stage two, Model list name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fine}, Training loss: {train_loss}")
+                    print (f"Stage two, Model list name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch+1}/{self.epochs_fine}, Training loss: {train_loss}")
                 
                 self.clf.eval()
                 hiddle_list = []

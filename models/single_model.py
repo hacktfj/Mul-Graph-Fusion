@@ -59,36 +59,28 @@ class Single_model(nn.Module):
             # lr = 1e-2
             dgl_graph = pyg_to_dgl(graph)
             self.model = BWGNN_em(in_feats, h_feats, num_classes, dgl_graph)
-            self.optimizer = Adam(self.model.parameters(), lr = self.lr)
+            # self.optimizer1 = Adam(self.model1.parameters(), lr = lr) if loss_oriented == "ssl_oriented" else None
             # self.optimizer = Adam(self.model.parameters(), lr = lr)
             self.model1 = BWGNN_em(in_feats, h_feats, num_classes, dgl_graph) if loss_oriented == "ssl_oriented" else None
-            self.optimizer1 = Adam(self.model1.parameters(), lr = self.lr) if loss_oriented == "ssl_oriented" else None
-            # self.optimizer1 = Adam(self.model1.parameters(), lr = lr) if loss_oriented == "ssl_oriented" else None
         elif model_name == "gin":
             self.model = GIN(in_feats, h_feats, num_classes, self.graph)
-            self.optimizer = Adam(self.model.parameters(), lr = self.lr)
             self.model1 = GIN(in_feats, h_feats, num_classes, self.graph) if loss_oriented == "ssl_oriented" else None
-            self.optimizer1 = Adam(self.model1.parameters(), lr = self.lr) if loss_oriented == "ssl_oriented" else None
         elif model_name == "gat":
             self.model = GAT(in_feats, h_feats, num_classes, self.graph)
-            self.optimizer = Adam(self.model.parameters(), lr = self.lr)
             self.model1 = GAT(in_feats, h_feats, num_classes, self.graph) if loss_oriented == "ssl_oriented" else None
-            self.optimizer1 = Adam(self.model1.parameters(), lr = self.lr) if loss_oriented == "ssl_oriented" else None
         elif model_name == "gcn":
             self.model = GCN(in_feats, h_feats, num_classes, self.graph)
-            self.optimizer = Adam(self.model.parameters(), lr = self.lr)
             self.model1 = GCN(in_feats, h_feats, num_classes, self.graph) if loss_oriented == "ssl_oriented" else None
-            self.optimizer1 = Adam(self.model1.parameters(), lr = self.lr) if loss_oriented == "ssl_oriented" else None
+        self.optimizer = Adam(self.model.parameters(), lr = self.lr)
+        self.optimizer1 = Adam(self.model1.parameters(), lr = self.lr) if loss_oriented == "ssl_oriented" else None
         
         if loss_oriented == "label_oriented":
             self.loss = Label_loss(self.h_feats, self.num_classes, self.graph)
-            self.loss_optimizer = Adam(self.loss.parameters(), lr = self.lr)
         elif loss_oriented == "reconstruction_oriented":
             self.loss = Reconstruction_loss(self.h_feats, self.graph)
-            self.loss_optimizer = Adam(self.loss.parameters(), lr = self.lr)
         elif loss_oriented == "ssl_oriented":
             self.loss = SSL_loss(self.h_feats, self.device)
-            self.loss_optimizer = Adam(self.loss.parameters(), lr = self.lr)
+        self.loss_optimizer = Adam(self.loss.parameters(), lr = self.lr)
     
     def fit(self, patience=20, recluster_interval = 10):
         """patience for all loss function.
@@ -152,7 +144,7 @@ class Single_model(nn.Module):
                     print ("Early stopping")
                     break
                 if self.verbose:
-                    print (f"Stage one, Model name: {self.model_name}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fit}, Training loss: {train_loss}")
+                    print (f"Stage one, Model name: {self.model_name}, loss oriented: {self.loss_oriented}; Epoch {epoch+1}/{self.epochs_fit}, Training loss: {train_loss}")
 
     def fine_tuning(self, patience=20):
         if self.loss_oriented == "label_oriented" or self.loss_oriented == "reconstruction_oriented" or self.loss_oriented == "ssl_oriented":
@@ -183,7 +175,7 @@ class Single_model(nn.Module):
                     print ("Early stopping")
                     break
                 if self.verbose:
-                    print (f"Stage two, Model name: {self.model_name}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fine}, Val auc: {val_auc}")
+                    print (f"Stage two, Model name: {self.model_name}, loss oriented: {self.loss_oriented}; Epoch {epoch+1}/{self.epochs_fine}, Val auc: {val_auc}")
             self.model.eval()
             self.clf.eval()
             _, hiddle = self.model(self.graph.x)
