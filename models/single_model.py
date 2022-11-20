@@ -57,7 +57,7 @@ class Single_model(nn.Module):
         self.verbose = verbose
         if model_name == "bwgnn":
             # lr = 1e-2
-            dgl_graph = pyg_to_dgl(graph)
+            dgl_graph = pyg_to_dgl(graph).to(device) if self.device == torch.device("cuda") else pyg_to_dgl(graph)
             self.model = BWGNN_em(in_feats, h_feats, num_classes, dgl_graph)
             # self.optimizer1 = Adam(self.model1.parameters(), lr = lr) if loss_oriented == "ssl_oriented" else None
             # self.optimizer = Adam(self.model.parameters(), lr = lr)
@@ -107,7 +107,7 @@ class Single_model(nn.Module):
                 if self.verbose:
                     print (f"Stage one, Model name: {self.model_name}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fit}, Training loss: {train_loss}")
         elif self.loss_oriented == "ssl_oriented":
-            kmeans = KMeans(n_clusters=self.num_classes, random_state=0).fit(self.graph.x)
+            kmeans = KMeans(n_clusters=self.num_classes, random_state=0).fit(self.graph.x.to(torch.device("cpu")))
             ss_label = kmeans.labels_
             cluster_info = [list(np.where(ss_label==i)[0]) for i in range(self.num_classes)]
             idx = np.random.permutation(self.graph.x.shape[0])

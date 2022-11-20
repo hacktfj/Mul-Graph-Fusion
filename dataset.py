@@ -123,7 +123,7 @@ class pyg_dataset():
  anomaly_ratio: {self.anomaly_ratio*100:.2f}%;\n anomaly_nums: {self.anomaly_num};\n node_nums: {self.node_nums};\n transform: {self.transform}"
 
 def pyg_to_dgl(pyg_dataset):
-    graph_dgl = dgl.DGLGraph()
+    graph_dgl = dgl.DGLGraph().to(pyg_dataset.x.device)
     graph_dgl.add_nodes(pyg_dataset.x.shape[0])
     graph_dgl.ndata['x'] = pyg_dataset.x
     graph_dgl.add_edges(*pyg_dataset.edge_index)
