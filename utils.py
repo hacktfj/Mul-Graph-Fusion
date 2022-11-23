@@ -81,18 +81,10 @@ def feature_fusion(feature_list, weight,strategy=0):
     else:
         pass
 
-# hiddle = hid_dominate.detach()
-# hiddle = BW_hid.detach()
-# hiddle = GAT_hid.detach()
-# 融合的特征未曾归一化
+def file_read():
+    pass
 
-# 补充信息最好策略
-# hiddle = torch.concat((1 * feature_normalize(GAT_hid.detach(),axis=0), 1 * feature_normalize(BW_hid.detach(),axis=0), 0.2 * feature_normalize(hid_dominate.detach(),axis=0)), axis=1)
 
-# 可学习化的参数
-# l_weight = [nn.Parameter(torch.randn([hiddle.shape[-1]], dtype=torch.float32, requires_grad=True))]
-# hiddle = torch.mul(hiddle, torch.softmax(*l_weight, dim = 0))
-# optimizer_ = Adam(l_weight, lr = 1e-3)
-
-# 计算hiddle特征之间的相似度，放缩到0-1之间 （专家系统）
-# hiddle = zero2one((1-cosine_distance(hiddle.T)).mean(axis=0))*hiddle
+if __name__ == "__main__":
+    file_read()
+    

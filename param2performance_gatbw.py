@@ -14,7 +14,7 @@ from utils import *
 torch.manual_seed(21)
 device = torch.device("cuda")
 
-def train_for_mul_model(model_list, optimizer_list, linear_model, linear_optimizer, data, a_weight, epochs, b_weight, b_optimizer=None):
+def train_for_mul_model(model_list, optimizer_list, linear_model, linear_optimizer, data, a_weight, epochs, b_weight, b_optimizer=None,verbose=1):
     """Train for multi model togeother. Like GAT, GCN, BWGNN or anyelse. 
     Args: 
         b_weight: option for numbers list or learnable parameters
@@ -23,7 +23,8 @@ def train_for_mul_model(model_list, optimizer_list, linear_model, linear_optimiz
     best_val_auc = 0
     early_stop = EarlyStopping(patience=20)
     for epoch in range(epochs):
-        print (b_weight)
+        if verbose:
+            print (b_weight)
         hiddle_list = []
         for pos, model in enumerate(model_list):
             model.train()
@@ -75,7 +76,8 @@ def train_for_mul_model(model_list, optimizer_list, linear_model, linear_optimiz
         if early_stop.early_stop == True:
             print ("Early stopping")
             break
-        print (f"Epoch {epoch+1}/{epochs}: val_loss: {val_loss}, val_auc: {auc}")
+        if verbose:
+            print (f"Epoch {epoch+1}/{epochs}: val_loss: {val_loss}, val_auc: {auc}")
     hiddle_list = []
     for model in model_list:
         model.eval()
@@ -87,11 +89,10 @@ def train_for_mul_model(model_list, optimizer_list, linear_model, linear_optimiz
     probs = logits.softmax(1)
     auc = roc_auc_score(data.y[data.test_mask].cpu().numpy(), probs[data.test_mask][:,1].detach().cpu().numpy()) if data.y.is_cuda else \
              roc_auc_score(data.y[data.test_mask].numpy(), probs[data.test_mask][:,1].detach().numpy())
-    print (f"Final Test Auc: {auc}")
     return hid, auc, best_val_auc
 
-def train_for_param(data_name):
-    parameter_list = np.linspace(start=0,stop=1,num=21)
+def train_for_param(data_name, dataset_mode="min",verbose=1):
+    parameter_list = np.linspace(start=0,stop=1,num=10)
     param2performance_list = []
     for param1 in parameter_list:
         param2 = 1 - param1
@@ -104,9 +105,9 @@ def train_for_param(data_name):
         test_list = []
         val_list = []
         for i in range(run_times):
-            np.random.seed(i*2)
+            np.random.seed(2*i)
             # data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3]).dataset
-            data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3], anomaly_type="min").dataset
+            data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3], anomaly_type=dataset_mode).dataset
             # data2 = pyg_dataset(dataset_name="cora", dataset_spilt=[0.4,0.2,0.3], anomaly_type="min", anomaly_ratio=0.1).dataset
             dgl_data = pyg_to_dgl(data)
             data = data.to(device)
@@ -125,7 +126,7 @@ def train_for_param(data_name):
 
             # l_weight = [nn.Parameter(torch.ones([hid_dom.shape[-1] * feature_length], dtype=torch.float32, requires_grad=True))]
             # b_weight = [nn.Parameter(torch.ones([len(model_list)], dtype=torch.float32, requires_grad=True))]
-            b_weight = [[0.0, param1, param2]]
+            b_weight = [[0.0, param2, param1]]
             # b_optimizer = Adam(b_weight, lr = 1e-2, weight_decay=5e-2)
             # l_optimizer_ = Adam(l_weight, lr = 5e-2, weight_decay=5e-2)
 
@@ -134,8 +135,8 @@ def train_for_param(data_name):
             bw_optimizer = Adam(bw_model.parameters(), lr = 1e-3)
             cla_optimizer = Adam(cla_model.parameters(), lr = 1e-3)
 
-            optimizer_list = [gcn_optimizer,gat_optimizer,bw_optimizer]
-            _, auc, best_val_auc = train_for_mul_model(model_list, optimizer_list, cla_model, cla_optimizer, data, a_weight, epochs, b_weight)
+            optimizer_list = [gcn_optimizer, gat_optimizer, bw_optimizer]
+            _, auc, best_val_auc = train_for_mul_model(model_list, optimizer_list, cla_model, cla_optimizer, data, a_weight, epochs, b_weight,verbose=verbose)
             
             test_list.append(auc)
             val_list.append(best_val_auc)
@@ -148,10 +149,13 @@ def train_for_param(data_name):
         print (test_list,f"\n Test mean: {np.array(test_list).mean()}",f"\n Test std: {np.array(test_list).std()}")
         print (val_list, f"\n Val best: {np.array(val_list).max()}")
         
-    np.savetxt(f"./result/param2performance_{data_name}_gatbw.txt", np.array(param2performance_list))
+    np.savetxt(f"./result/param2performance_{data_name}_{dataset_mode}_gatbw.txt", np.array(param2performance_list))
 
 # "fraud_amazon",
-dataset_ava_list = ["pubmed", "amazon_computer", "amazon_photo"]
-for data_name in dataset_ava_list:
-    train_for_param(data_name)
+dataset_ava_list = ["cora","citeseer","pubmed", "amazon_computer", "amazon_photo","reddit", "weibo"]
+# dataset_ava_list = ["weibo"] 7*2 = 14
+dataset_mode_list = ["min","syn"]
+for dataset_mode in dataset_mode_list:
+    for data_name in dataset_ava_list:
+        train_for_param(data_name, dataset_mode, verbose=0)
     

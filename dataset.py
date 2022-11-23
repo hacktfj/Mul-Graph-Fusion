@@ -16,7 +16,7 @@ import pandas
 dataset_ava_list = ["karate", "cora", "citeseer", "pubmed", "amazon_computer","amazon_photo", "flickr", "Weibo", "reddit", "fraud_amazon", "fraud_yelp"]
 
 class pyg_dataset():
-    def __init__(self, dataset_name: str = "cora", dataset_spilt: Union[list,Tuple] = [0.6,0.2,0.2],anomaly_type: Optional[str] = None, anomaly_ratio: float=0.05, transform: bool = True) -> None:
+    def __init__(self, dataset_name: str = "cora", dataset_spilt: Union[list,Tuple] = [0.6,0.2,0.2],anomaly_type: Optional[str] = None, anomaly_ratio: float=0.1, transform: bool = True) -> None:
         '''Dataset for symthetic and organic anomaly dataset. `The unified
         pyg_dataset` makes a piece of cake for handling and managing data.
 
