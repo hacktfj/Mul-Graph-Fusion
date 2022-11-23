@@ -9,7 +9,9 @@ torch.manual_seed(21)
 np.random.seed(2)
 
 data_name = "reddit"
-data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3], anomaly_type="syn").dataset
+# data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3], anomaly_type="syn").dataset
+data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3]).dataset
+
 # model_list = ["bwgnn","gat"]
 # model_list = ["bwgnn"]
 # model_list = ["bwgnn"]

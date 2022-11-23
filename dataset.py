@@ -13,7 +13,7 @@ from pygod.utils import load_data
 import warnings
 import pandas
 
-dataset_ava_list = ["karate", "cora", "citeseer", "pubmed", "amazon_computer", "flickr", "Weibo", "reddit", "fraud_amazon", "fraud_yelp"]
+dataset_ava_list = ["karate", "cora", "citeseer", "pubmed", "amazon_computer","amazon_photo", "flickr", "Weibo", "reddit", "fraud_amazon", "fraud_yelp"]
 
 class pyg_dataset():
     def __init__(self, dataset_name: str = "cora", dataset_spilt: Union[list,Tuple] = [0.6,0.2,0.2],anomaly_type: Optional[str] = None, anomaly_ratio: float=0.05, transform: bool = True) -> None:
@@ -50,6 +50,10 @@ class pyg_dataset():
             amazon = Amazon(f"./data/amazon",f"Computers",transform=self.transform)[0]
             position = 1
             self.dataset = Data(x=amazon.x, edge_index=amazon.edge_index,y=amazon.y,train_mask=position,val_mask=position,test_mask=position)
+        elif self.dataset_name.lower() == "amazon_photo":
+            amazon = Amazon(f"./data/amazon",f"photo",transform=self.transform)[0]
+            position = 1
+            self.dataset = Data(x=amazon.x, edge_index=amazon.edge_index,y=amazon.y,train_mask=position,val_mask=position,test_mask=position)    
         elif self.dataset_name.lower() == "flickr":
             self.dataset = Flickr(f"./data/flickr",transform=self.transform)[0]
         elif self.dataset_name.lower() == "reddit" or self.dataset_name.lower() == "weibo":

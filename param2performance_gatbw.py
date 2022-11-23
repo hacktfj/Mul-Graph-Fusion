@@ -12,7 +12,7 @@ from torch_geometric.nn.conv import GCNConv
 from utils import *
 
 torch.manual_seed(21)
-device = torch.device("cpu")
+device = torch.device("cuda")
 
 def train_for_mul_model(model_list, optimizer_list, linear_model, linear_optimizer, data, a_weight, epochs, b_weight, b_optimizer=None):
     """Train for multi model togeother. Like GAT, GCN, BWGNN or anyelse. 
@@ -150,7 +150,8 @@ def train_for_param(data_name):
         
     np.savetxt(f"./result/param2performance_{data_name}_gatbw.txt", np.array(param2performance_list))
 
-dataset_ava_list = ["cora"]
+# "fraud_amazon",
+dataset_ava_list = ["pubmed", "amazon_computer", "amazon_photo"]
 for data_name in dataset_ava_list:
     train_for_param(data_name)
     

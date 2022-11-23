@@ -7,17 +7,20 @@ torch.manual_seed(21)
 # np.random.seed(2)
 device = torch.device("cuda")
 
-model_list = ["bwgnn", "gin", "gat", "gcn"]
-data_list = ["cora","citeseer","pubmed","weibo","reddit"]
-loss_oriented_list = ["label_oriented", "reconstruction_oriented", "ssl_oriented"]
+model_list = ["bwgnn", "gin", "gcn"]
+# data_list = ["cora","citeseer","pubmed","weibo","reddit"]
+data_list = ["fraud_amazon",]
+# loss_oriented_list = ["label_oriented", "reconstruction_oriented", "ssl_oriented"]
+loss_oriented_list = ["reconstruction_oriented", "label_oriented", "ssl_oriented"]
 run_times = range(5)
 hid_dim = 64
+
 number_class = 2
 data = None
 record_string = ""
 
 for data_name in data_list:
-    if data_name == "cora" or data_name == "citeseer" or data_name == "pubmed":
+    if data_name == "cora" or data_name == "citeseer" or data_name == "pubmed" or data_name == "amazon_computer" or data_name == "amazon_photo":
         data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3], anomaly_type="min").dataset.to(device)
         for model_name in model_list:
             for loss_oriented in loss_oriented_list:

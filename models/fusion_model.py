@@ -101,6 +101,9 @@ class Fusion_model(nn.Module):
         elif loss_oriented == "ssl_oriented":
             self.loss = SSL_loss(self.h_feats*self.model_len, self.device)
         self.loss_optimizer = Adam(self.loss.parameters(), lr = self.lr)
+
+        self.sequential = nn.Sequential(*self.model_list)
+        self.sequential1 = nn.Sequential(*self.model1_list)
     
     def fusion_feature(self, hiddle_list, fusion_strategy):
         """what does the fusion means detail.
@@ -165,7 +168,7 @@ class Fusion_model(nn.Module):
                 if self.verbose:
                     print (f"Stage one, Model name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fit}, Training loss: {train_loss}")
         elif self.loss_oriented == "ssl_oriented":
-            kmeans = KMeans(n_clusters=self.num_classes, random_state=0).fit(self.graph.x)
+            kmeans = KMeans(n_clusters=self.num_classes, random_state=0).fit(self.graph.x.to(torch.device("cpu")))
             ss_label = kmeans.labels_
             cluster_info = [list(np.where(ss_label==i)[0]) for i in range(self.num_classes)]
             idx = np.random.permutation(self.graph.x.shape[0])
