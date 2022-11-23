@@ -92,69 +92,72 @@ def train_for_mul_model(model_list, optimizer_list, linear_model, linear_optimiz
     return hid, auc, best_val_auc
 
 def train_for_param(data_name, dataset_mode="min",verbose=1):
-    parameter_list = np.linspace(start=0,stop=1,num=10)
+    parameter_list = np.linspace(start=0,stop=1,num=11)
+    parameter_list1 = np.linspace(start=0.1,stop=1,num=10)
     param2performance_list = []
     for param1 in parameter_list:
-        param2 = 1 - param1
+        for param2 in parameter_list1:
+        # param2 = 1 - param1
 
-        # run five times to get mean and std for test. best performance for val.
-        run_times = 3
-        test_auc_mean = []
-        test_auc_std = []
-        val_auc_best = []
-        test_list = []
-        val_list = []
-        for i in range(run_times):
-            np.random.seed(2*i)
-            # data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3]).dataset
-            data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3], anomaly_type=dataset_mode).dataset
-            # data2 = pyg_dataset(dataset_name="cora", dataset_spilt=[0.4,0.2,0.3], anomaly_type="min", anomaly_ratio=0.1).dataset
-            dgl_data = pyg_to_dgl(data)
-            data = data.to(device)
-            dgl_data = dgl_data.to(device)
+            # run five times to get mean and std for test. best performance for val.
+            run_times = 3
+            test_auc_mean = []
+            test_auc_std = []
+            val_auc_best = []
+            test_list = []
+            val_list = []
+            for i in range(run_times):
+                np.random.seed(2*i)
+                # data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3]).dataset
+                data = pyg_dataset(dataset_name=data_name, dataset_spilt=[0.4,0.29,0.3], anomaly_type=dataset_mode).dataset
+                # data2 = pyg_dataset(dataset_name="cora", dataset_spilt=[0.4,0.2,0.3], anomaly_type="min", anomaly_ratio=0.1).dataset
+                dgl_data = pyg_to_dgl(data)
+                data = data.to(device)
+                dgl_data = dgl_data.to(device)
 
-            a_weight = anomaly_weight(data)
+                a_weight = anomaly_weight(data)
 
-            epochs = 75
-            hid_dim = 64
-            number_class = 2
-            gcn_model = GCN(data.x.shape[1], hid_dim, number_class, data).to(device)
-            gat_model = GAT(data.x.shape[1], hid_dim, number_class, data).to(device)
-            bw_model = BWGNN_em(data.x.shape[1], hid_dim, number_class, dgl_data).to(device)
-            model_list = [gcn_model, gat_model, bw_model]
-            cla_model = GCNConv(hid_dim*len(model_list), number_class).to(device)
+                epochs = 75
+                hid_dim = 64
+                number_class = 2
+                gcn_model = GCN(data.x.shape[1], hid_dim, number_class, data).to(device)
+                gat_model = GAT(data.x.shape[1], hid_dim, number_class, data).to(device)
+                bw_model = BWGNN_em(data.x.shape[1], hid_dim, number_class, dgl_data).to(device)
+                model_list = [gcn_model, gat_model, bw_model]
+                cla_model = GCNConv(hid_dim*len(model_list), number_class).to(device)
 
-            # l_weight = [nn.Parameter(torch.ones([hid_dom.shape[-1] * feature_length], dtype=torch.float32, requires_grad=True))]
-            # b_weight = [nn.Parameter(torch.ones([len(model_list)], dtype=torch.float32, requires_grad=True))]
-            b_weight = [[0.0, param2, param1]]
-            # b_optimizer = Adam(b_weight, lr = 1e-2, weight_decay=5e-2)
-            # l_optimizer_ = Adam(l_weight, lr = 5e-2, weight_decay=5e-2)
+                # l_weight = [nn.Parameter(torch.ones([hid_dom.shape[-1] * feature_length], dtype=torch.float32, requires_grad=True))]
+                # b_weight = [nn.Parameter(torch.ones([len(model_list)], dtype=torch.float32, requires_grad=True))]
+                b_weight = [[0.0, param2, param1]]
+                # b_optimizer = Adam(b_weight, lr = 1e-2, weight_decay=5e-2)
+                # l_optimizer_ = Adam(l_weight, lr = 5e-2, weight_decay=5e-2)
 
-            gcn_optimizer = Adam(gcn_model.parameters(), lr = 1e-3)
-            gat_optimizer = Adam(gat_model.parameters(), lr = 1e-3)
-            bw_optimizer = Adam(bw_model.parameters(), lr = 1e-3)
-            cla_optimizer = Adam(cla_model.parameters(), lr = 1e-3)
+                gcn_optimizer = Adam(gcn_model.parameters(), lr = 1e-3)
+                gat_optimizer = Adam(gat_model.parameters(), lr = 1e-3)
+                bw_optimizer = Adam(bw_model.parameters(), lr = 1e-3)
+                cla_optimizer = Adam(cla_model.parameters(), lr = 1e-3)
 
-            optimizer_list = [gcn_optimizer, gat_optimizer, bw_optimizer]
-            _, auc, best_val_auc = train_for_mul_model(model_list, optimizer_list, cla_model, cla_optimizer, data, a_weight, epochs, b_weight,verbose=verbose)
+                optimizer_list = [gcn_optimizer, gat_optimizer, bw_optimizer]
+                _, auc, best_val_auc = train_for_mul_model(model_list, optimizer_list, cla_model, cla_optimizer, data, a_weight, epochs, b_weight,verbose=verbose)
+                
+                test_list.append(auc)
+                val_list.append(best_val_auc)
             
-            test_list.append(auc)
-            val_list.append(best_val_auc)
-        
-        test_auc_mean.append(np.array(test_list).mean())
-        test_auc_std.append(np.array(test_list).std())
-        val_auc_best.append(np.array(val_list).max())
+            test_auc_mean.append(np.array(test_list).mean())
+            test_auc_std.append(np.array(test_list).std())
+            val_auc_best.append(np.array(val_list).max())
 
-        param2performance_list.append([param1, param2, test_auc_mean[-1], test_auc_std[-1], val_auc_best[-1]])
-        print (test_list,f"\n Test mean: {np.array(test_list).mean()}",f"\n Test std: {np.array(test_list).std()}")
-        print (val_list, f"\n Val best: {np.array(val_list).max()}")
+            param2performance_list.append([param1, param2, test_auc_mean[-1], test_auc_std[-1], val_auc_best[-1]])
+            print (test_list,f"\n Test mean: {np.array(test_list).mean()}",f"\n Test std: {np.array(test_list).std()}")
+            print (val_list, f"\n Val best: {np.array(val_list).max()}")
         
     np.savetxt(f"./result/param2performance_{data_name}_{dataset_mode}_gatbw.txt", np.array(param2performance_list))
 
 # "fraud_amazon",
-dataset_ava_list = ["cora","citeseer","pubmed", "amazon_computer", "amazon_photo","reddit", "weibo"]
+# dataset_ava_list = ["cora","citeseer","pubmed", "amazon_computer", "amazon_photo","reddit", "weibo"]
 # dataset_ava_list = ["weibo"] 7*2 = 14
-dataset_mode_list = ["min","syn"]
+dataset_ava_list = ["weibo"]
+dataset_mode_list = ["min"]
 for dataset_mode in dataset_mode_list:
     for data_name in dataset_ava_list:
         train_for_param(data_name, dataset_mode, verbose=0)

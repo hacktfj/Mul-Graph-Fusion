@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from torch.nn.functional import cross_entropy
 from early_stop import EarlyStopping
 from sklearn.metrics import roc_auc_score
@@ -81,10 +82,22 @@ def feature_fusion(feature_list, weight,strategy=0):
     else:
         pass
 
-def file_read():
+def read_param2per(file_path):
+    line_array = []
+    with open(file_path,"r") as f:
+        f_line_list = f.readlines()
+        for f_line in f_line_list:
+            f_num = f_line.split(" ")
+            f_num = np.array(f_num).astype(float)
+            line_array.append(f_num)
+        line_array = np.array(line_array)
+    return line_array
+
+def read_single():
+    pass
+def read_fusion():
     pass
 
-
 if __name__ == "__main__":
-    file_read()
-    
+    param2per = read_param2per("./result/param2performance_weibo_min_gatbw.txt")
+    print (param2per[:,2].reshape(11,10))
