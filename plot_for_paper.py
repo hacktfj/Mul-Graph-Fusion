@@ -42,19 +42,15 @@ def heatmap(data, row_labels, col_labels, ax=None,
     cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # Show all ticks and label them with the respective list entries.
-    print (data.shape[1])
-    print (col_labels)
-    # ax.set_xticks(np.arange(data.shape[1]), labels=col_labels)
-    ax.set_xticks(np.arange(data.shape[1]))
-    # ax.set_yticks(np.arange(data.shape[0]), labels=row_labels)
-    ax.set_yticks(np.arange(data.shape[0]))
+    ax.set_xticks(np.arange(data.shape[1]), col_labels)
+    ax.set_yticks(np.arange(data.shape[0]), row_labels)
     # Let the horizontal axes labeling appear on top.
     ax.tick_params(top=True, bottom=False,
                    labeltop=True, labelbottom=False)
 
     # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
-             rotation_mode="anchor")
+    # plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
+    #          rotation_mode="anchor")
 
     # Turn spines off and create white grid.
     # ax.spines[:].set_visible(False)
@@ -65,7 +61,6 @@ def heatmap(data, row_labels, col_labels, ax=None,
     ax.tick_params(which="minor", bottom=False, left=False)
 
     return im, cbar
-
 
 def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
                      textcolors=("black", "white"),
@@ -145,11 +140,11 @@ if __name__ == "__main__":
     # use an integer format on the annotations and provide some colors.
 
     # data = np.random.randint(2, 100, size=(7, 7))
-    y = ["Book {}".format(i) for i in range(1, 11)]
-    x = ["Store {}".format(i) for i in list("ABCDEFGHIJ")]
-    im, _ = heatmap(data, y, x, ax=ax2, vmin=0.85,
-                    cmap="magma_r", cbarlabel="weekly sold copies")
-    annotate_heatmap(im, valfmt="{x:d}", size=10, threshold=20, textcolors=("red", "white"))
+    y = ["{}".format(i) for i in range(11)]
+    x = ["{}".format(i) for i in range(1,11)]
+    im, _ = heatmap(data, y, x, ax=ax2, vmin=0.95,
+                    cmap="magma_r", cbarlabel="Detection rate")
+    annotate_heatmap(im, valfmt="{x:d}", size=9, threshold=0.95, textcolors=("green","red"))
 
     # Sometimes even the data itself is categorical. Here we use a
     # `matplotlib.colors.BoundaryNorm` to get the data into classes
