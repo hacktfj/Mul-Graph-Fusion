@@ -97,8 +97,7 @@ def train_for_param(data_name, dataset_mode="min",verbose=1):
     param2performance_list = []
     for param1 in parameter_list:
         for param2 in parameter_list1:
-        # param2 = 1 - param1
-
+            # param2 = 1 - param1
             # run five times to get mean and std for test. best performance for val.
             run_times = 3
             test_auc_mean = []
@@ -128,7 +127,7 @@ def train_for_param(data_name, dataset_mode="min",verbose=1):
 
                 # l_weight = [nn.Parameter(torch.ones([hid_dom.shape[-1] * feature_length], dtype=torch.float32, requires_grad=True))]
                 # b_weight = [nn.Parameter(torch.ones([len(model_list)], dtype=torch.float32, requires_grad=True))]
-                b_weight = [[0.0, param2, param1]]
+                b_weight = [[param1, param2, 0.0]]
                 # b_optimizer = Adam(b_weight, lr = 1e-2, weight_decay=5e-2)
                 # l_optimizer_ = Adam(l_weight, lr = 5e-2, weight_decay=5e-2)
 
@@ -151,13 +150,13 @@ def train_for_param(data_name, dataset_mode="min",verbose=1):
             print (test_list,f"\n Test mean: {np.array(test_list).mean()}",f"\n Test std: {np.array(test_list).std()}")
             print (val_list, f"\n Val best: {np.array(val_list).max()}")
         
-    np.savetxt(f"./result/param2performance_{data_name}_{dataset_mode}_gatbw.txt", np.array(param2performance_list))
+    np.savetxt(f"./result/param2performance_{data_name}_{dataset_mode}_gcngat.txt", np.array(param2performance_list))
 
 # "fraud_amazon",
-# dataset_ava_list = ["cora","citeseer","pubmed", "amazon_computer", "amazon_photo","reddit", "weibo"]
-# dataset_ava_list = ["weibo"] 7*2 = 14
-dataset_ava_list = ["weibo"]
-dataset_mode_list = ["min"]
+dataset_ava_list = ["amazon_photo","weibo"]
+# dataset_ava_list = ["weibo"] #7*2 = 14
+# dataset_ava_list = ["weibo"]
+dataset_mode_list = ["min", "syn"]
 for dataset_mode in dataset_mode_list:
     for data_name in dataset_ava_list:
         train_for_param(data_name, dataset_mode, verbose=0)

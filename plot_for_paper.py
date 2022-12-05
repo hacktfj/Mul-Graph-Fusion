@@ -38,7 +38,7 @@ def heatmap(data, row_labels, col_labels, ax=None,
     im = ax.imshow(data, **kwargs)
 
     # Create colorbar
-    cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
+    cbar = ax.figure.colorbar(im, ax=ax, format='%.2f', **cbar_kw)
     cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # Show all ticks and label them with the respective list entries.
@@ -55,9 +55,9 @@ def heatmap(data, row_labels, col_labels, ax=None,
     # Turn spines off and create white grid.
     # ax.spines[:].set_visible(False)
 
-    ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
-    ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
-    ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    ax.set_xticks(np.arange(data.shape[1]+0.5)-.5, minor=True)
+    ax.set_yticks(np.arange(data.shape[0]+0.5)-.5, minor=True)
+    ax.grid(which="minor", color="w", linestyle='-', linewidth=1.5)
     ax.tick_params(which="minor", bottom=False, left=False)
 
     return im, cbar
@@ -125,10 +125,16 @@ def plot_fusion_heatmap():
     pass
 
 if __name__ == "__main__":
-    param2per = read_param2per("./result/param2performance_weibo_min_gatbw.txt")
-    data = param2per[:,2].reshape(11,10)
+    param2per1 = read_param2per("./result/param2performance_weibo_min_gcngat.txt")
+    param2per2 = read_param2per("./result/param2performance_weibo_syn_gcngat.txt")
+    param2per3 = read_param2per("./result/param2performance_amazon_photo_min_gcngat.txt")
+    param2per4 = read_param2per("./result/param2performance_amazon_photo_syn_gcngat.txt")
+    data1 = param2per1[:,2].reshape(11,10)
+    data2 = param2per2[:,2].reshape(11,10)
+    data3 = param2per3[:,2].reshape(11,10)
+    data4 = param2per4[:,2].reshape(11,10)
     # np.random.seed(19680801)
-    fig, (ax2) = plt.subplots(1, 1, figsize=(8, 6))
+    fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(2, 2, figsize=(7, 6))
 
     # Replicate the above example with a different font size and colormap.
 
@@ -142,10 +148,24 @@ if __name__ == "__main__":
     # data = np.random.randint(2, 100, size=(7, 7))
     y = ["{}".format(i) for i in range(11)]
     x = ["{}".format(i) for i in range(1,11)]
-    im, _ = heatmap(data, y, x, ax=ax2, vmin=0.95,
-                    cmap="magma_r", cbarlabel="Detection rate")
-    annotate_heatmap(im, valfmt="{x:d}", size=9, threshold=0.95, textcolors=("green","red"))
+    im, _ = heatmap(data1, y, x, ax=ax1, vmin=0.93,vmax=0.98,
+                    cmap="inferno_r", cbarlabel="")
+    annotate_heatmap(im, valfmt="{x:d}", size=5, threshold=0.95, textcolors=("green","red"))
 
+    im, _ = heatmap(data2, y, x, ax=ax2, vmin=0.65,vmax=0.69,
+                    cmap="inferno_r", cbarlabel="")
+    annotate_heatmap(im, valfmt="{x:d}", size=5, threshold=0.65, textcolors=("green","red"))
+    
+    im, _ = heatmap(data3, y, x, ax=ax3, vmin=0.92,vmax=0.95,
+                    cmap="inferno_r", cbarlabel="")
+    annotate_heatmap(im, valfmt="{x:d}", size=5, threshold=0.92, textcolors=("green","red"))
+
+    im, _ = heatmap(data4, y, x, ax=ax4, vmin=0.61,vmax=0.63,
+                    cmap="inferno_r", cbarlabel="")
+    annotate_heatmap(im, valfmt="{x:d}", size=5, threshold=0.61, textcolors=("green","red"))
+    plt.suptitle("Detection rate")
+    plt.savefig(str('./result/fusion.eps'), bbox_inches='tight', format='eps')
+    plt.show()
     # Sometimes even the data itself is categorical. Here we use a
     # `matplotlib.colors.BoundaryNorm` to get the data into classes
     # and use this to colorize the plot, but also to obtain the class
@@ -182,8 +202,4 @@ if __name__ == "__main__":
     #     return "{:.2f}".format(x).replace("0.", ".").replace("1.00", "")
 
     # annotate_heatmap(im, valfmt=matplotlib.ticker.FuncFormatter(func), size=7)
-
-
-    plt.tight_layout()
-    plt.show()
 
