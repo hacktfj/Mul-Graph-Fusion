@@ -166,40 +166,4 @@ if __name__ == "__main__":
     plt.suptitle("Detection rate")
     plt.savefig(str('./result/fusion.eps'), bbox_inches='tight', format='eps')
     plt.show()
-    # Sometimes even the data itself is categorical. Here we use a
-    # `matplotlib.colors.BoundaryNorm` to get the data into classes
-    # and use this to colorize the plot, but also to obtain the class
-    # labels from an array of classes.
-
-    # data = np.random.randn(6, 6)
-    # y = ["Prod. {}".format(i) for i in range(10, 70, 10)]
-    # x = ["Cycle {}".format(i) for i in range(1, 7)]
-
-    # qrates = list("ABCDEFG")
-    # norm = matplotlib.colors.BoundaryNorm(np.linspace(-3.5, 3.5, 8), 7)
-    # fmt = matplotlib.ticker.FuncFormatter(lambda x, pos: qrates[::-1][norm(x)])
-
-    # im, _ = heatmap(data, y, x, ax=ax3,
-    #                 cmap=mpl.colormaps["PiYG"].resampled(7), norm=norm,
-    #                 cbar_kw=dict(ticks=np.arange(-3, 4), format=fmt),
-    #                 cbarlabel="Quality Rating")
-
-    # annotate_heatmap(im, valfmt=fmt, size=9, fontweight="bold", threshold=-1,
-    #                 textcolors=("red", "black"))
-
-    # We can nicely plot a correlation matrix. Since this is bound by -1 and 1,
-    # we use those as vmin and vmax. We may also remove leading zeros and hide
-    # the diagonal elements (which are all 1) by using a
-    # `matplotlib.ticker.FuncFormatter`.
-
-    # corr_matrix = np.corrcoef(harvest)
-    # im, _ = heatmap(corr_matrix, vegetables, vegetables, ax=ax4,
-    #                 cmap="PuOr", vmin=-1, vmax=1,
-    #                 cbarlabel="correlation coeff.")
-
-
-    # def func(x, pos):
-    #     return "{:.2f}".format(x).replace("0.", ".").replace("1.00", "")
-
-    # annotate_heatmap(im, valfmt=matplotlib.ticker.FuncFormatter(func), size=7)
 
