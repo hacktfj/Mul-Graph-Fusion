@@ -28,6 +28,10 @@ class Label_loss(nn.Module):
         train_loss = cross_entropy(logits[self.graph.train_mask], self.graph.y[self.graph.train_mask], weight=torch.tensor([1.0, self.a_weight],device=self.device))
         return train_loss
 
+    def logit_for_tsne(self, hiddle):
+        logits = self.linear(hiddle, self.graph.edge_index) if self.type == "min" else self.linear(hiddle)
+        return logits
+
     def val_loss_auc(self, hiddle):
         logits = self.linear(hiddle, self.graph.edge_index) if self.type == "min" else self.linear(hiddle)
         val_loss = F.cross_entropy(logits[self.graph.val_mask], self.graph.y[self.graph.val_mask], weight=torch.tensor([1.0, self.a_weight],device=self.device))

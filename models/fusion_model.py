@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore")
 
 
 model_list = ["bwgnn", "gin", "gat", "gcn"] # four methods
-loss_oriented_list = ["label_oriented", "reconstruction_oriented", "ssl_oriented"]
+loss_oriented_list = ["label_oriented"]
 class Fusion_model(nn.Module):
 
     def __init__(self, model_name_list, loss_oriented, in_feats, h_feats, num_classes, graph, fusion_strategy=0, lr = 5e-3, epochs_fit=75, epochs_fine=25, verbose=1, anomaly_type="min") -> None:
@@ -100,10 +100,6 @@ class Fusion_model(nn.Module):
                 self.loss = Label_loss(self.h_feats*self.model_len, self.num_classes, self.graph, anomaly_type="syn")
             else:    
                 self.loss = Label_loss(self.h_feats*self.model_len, self.num_classes, self.graph, anomaly_type=self.type)
-        # elif loss_oriented == "reconstruction_oriented":
-        #     self.loss = Reconstruction_loss(self.h_feats*self.model_len, self.graph)
-        # elif loss_oriented == "ssl_oriented":
-        #     self.loss = SSL_loss(self.h_feats*self.model_len, self.device)
         self.loss_optimizer = Adam(self.loss.parameters(), lr = self.lr)
 
         self.sequential = nn.Sequential(*self.model_list)
@@ -139,6 +135,51 @@ class Fusion_model(nn.Module):
             hiddle = zero2one((1-cosine_distance(hiddle.T)).mean(axis=0))*hiddle
         return hiddle
 
+    def fit_for_tsne(self):
+        self.train_for_tsne()
+        self.loss.eval()
+        hiddle_list = []
+        for model in self.model_list:
+            model.eval()
+            _, hiddle = model(self.graph.x)
+            hiddle_list.append(hiddle)
+        hiddle = self.fusion_feature(hiddle_list, self.fusion_strategy)
+        logits = self.loss.logit_for_tsne(hiddle)
+        return logits
+    
+    def decision_for_tsne(self, graph):
+        self.loss.eval()
+        hiddle_list = []
+        for model in self.model_list:
+            model.eval()
+            _, hiddle = model(graph.x)
+            hiddle_list.append(hiddle)
+        hiddle = self.fusion_feature(hiddle_list, self.fusion_strategy)
+        logits = self.loss.logit_for_tsne(hiddle)
+        return logits
+
+    def train_for_tsne(self, patience=20, recluster_interval=10):
+        early_stop = EarlyStopping(patience=patience)
+        for epoch in range(100):
+            self.loss.train()
+            hiddle_list = []
+            for model in self.model_list:
+                model.train()
+                _, hiddle = model(self.graph.x)
+                hiddle_list.append(hiddle)
+            hiddle = self.fusion_feature(hiddle_list, self.fusion_strategy)
+            train_loss = self.loss(hiddle)
+
+            [optimizer.zero_grad() for optimizer in self.optimizer_list]
+            if self.fusion_strategy == 2 or self.fusion_strategy == 3:
+                self.balance_optimizer.zero_grad()
+            self.loss_optimizer.zero_grad()
+            train_loss.backward()
+            [optimizer.step() for optimizer in self.optimizer_list]
+            if self.fusion_strategy == 2 or self.fusion_strategy == 3:
+                self.balance_optimizer.step()
+            self.loss_optimizer.step()
+
     def fit(self, patience=20, recluster_interval = 10):
         """patience for all loss function.
         recluster for ssl_oriented
@@ -171,62 +212,6 @@ class Fusion_model(nn.Module):
                     break
                 if self.verbose:
                     print (f"Stage one, Model name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fit}, Training loss: {train_loss}")
-        # elif self.loss_oriented == "ssl_oriented":
-        #     kmeans = KMeans(n_clusters=self.num_classes, random_state=0).fit(self.graph.x.to(torch.device("cpu")))
-        #     ss_label = kmeans.labels_
-        #     cluster_info = [list(np.where(ss_label==i)[0]) for i in range(self.num_classes)]
-        #     idx = np.random.permutation(self.graph.x.shape[0])
-        #     shuf_feats = self.graph.x[idx, :]
-        #     early_stop = EarlyStopping(patience=patience)
-
-        #     for epoch in range(self.epochs_fit):
-        #         # print (f"balance weight: {self.balance_weight}")
-        #         self.loss.train()
-        #         hiddle1_list = []
-        #         hiddle2_list = []
-        #         for model in self.model_list:
-        #             model.train()
-        #             _, hiddle1 = model(self.graph.x)
-        #             hiddle1_list.append(hiddle1)
-        #         for model1 in self.model1_list:
-        #             model1.train()
-        #             _, hiddle2 = model1(shuf_feats)
-        #             hiddle2_list.append(hiddle2)
-                
-        #         fusion_hiddle1, fusion_hiddle2 = self.fusion_feature(hiddle1_list, fusion_strategy=self.fusion_strategy), self.fusion_feature(hiddle2_list, fusion_strategy=self.fusion_strategy)
-        #         train_loss = self.loss(fusion_hiddle1, fusion_hiddle2, None, None, None, cluster_info, self.num_classes)
-                
-        #         [optimizer.zero_grad() for optimizer in self.optimizer_list]
-        #         [optimizer.zero_grad() for optimizer in self.optimizer1_list]
-        #         if self.fusion_strategy == 2 or self.fusion_strategy == 3:
-        #             self.balance_optimizer.zero_grad()
-        #         self.loss_optimizer.zero_grad()
-        #         train_loss.backward()
-        #         [optimizer.step() for optimizer in self.optimizer_list]
-        #         [optimizer.step() for optimizer in self.optimizer1_list]
-        #         if self.fusion_strategy == 2 or self.fusion_strategy == 3:
-        #             self.balance_optimizer.step()
-        #         self.loss_optimizer.step()
-
-        #         # re-clustering
-        #         if epoch % recluster_interval == 0:
-        #             hiddle1_list = []
-        #             for model in self.model_list:
-        #                 model.eval()
-        #                 _, hiddle1 = model(self.graph.x)
-        #                 hiddle1_list.append(hiddle1)
-        #             fusion_hiddle1 = self.fusion_feature(hiddle1_list, fusion_strategy=self.fusion_strategy)
-        #             kmeans = KMeans(n_clusters=self.num_classes, random_state=0).fit(fusion_hiddle1.detach().cpu().numpy())
-        #             ss_label = kmeans.labels_
-        #             cluster_info = [list(np.where(ss_label==i)[0]) for i in range(self.num_classes)]
-                
-        #         # record
-        #         early_stop(train_loss)
-        #         if early_stop.early_stop == True:
-        #             print ("Early stopping")
-        #             break
-        #         if self.verbose:
-        #             print (f"Stage one, Model list name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch+1}/{self.epochs_fit}, Training loss: {train_loss}")
     
     def no_fine_tuning(self, patience=20):
         early_stop = EarlyStopping(patience=patience)
@@ -258,56 +243,3 @@ class Fusion_model(nn.Module):
         test_auc = self.loss.test_auc(hiddle)
         return test_auc, best_val_auc
 
-    # def fine_tuning(self, patience=20):
-    #     if self.loss_oriented == "label_oriented" or self.loss_oriented == "reconstruction_oriented" or self.loss_oriented == "ssl_oriented":
-    #         early_stop = EarlyStopping(patience=patience)
-    #         best_val_auc = 0
-    #         for epoch in range(self.epochs_fine):
-    #             self.clf.train()
-    #             hiddle_list = []
-    #             for model in self.model_list:
-    #                 model.train()
-    #                 _, hiddle = model(self.graph.x)
-    #                 hiddle_list.append(hiddle)
-    #             hiddle = self.fusion_feature(hiddle_list, self.fusion_strategy)
-
-    #             train_loss = self.clf(hiddle)
-
-    #             [optimizer.zero_grad() for optimizer in self.optimizer_list]
-    #             if self.fusion_strategy == 2 or self.fusion_strategy == 3:
-    #                 self.balance_optimizer.zero_grad()
-    #             self.clf_optimizer.zero_grad()
-    #             train_loss.backward()
-    #             [optimizer.step() for optimizer in self.optimizer_list]
-    #             if self.fusion_strategy == 2 or self.fusion_strategy == 3:
-    #                 self.balance_optimizer.step()
-    #             self.clf_optimizer.step()
-    #             if self.verbose:
-    #                 print (f"Stage two, Model list name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch+1}/{self.epochs_fine}, Training loss: {train_loss}")
-                
-    #             self.clf.eval()
-    #             hiddle_list = []
-    #             for model in self.model_list:
-    #                 model.eval()
-    #                 _, hiddle = model(self.graph.x)
-    #                 hiddle_list.append(hiddle)
-    #             hiddle = self.fusion_feature(hiddle_list, self.fusion_strategy)
-
-    #             val_loss, val_auc = self.clf.val_loss_auc(hiddle)
-    #             if val_auc >= best_val_auc:
-    #                 best_val_auc = val_auc
-    #             early_stop(val_loss)
-    #             if early_stop.early_stop == True:
-    #                 print ("Early stopping")
-    #                 break
-    #             if self.verbose:
-    #                 print (f"Stage two, Model name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fine}, Val auc: {val_auc}")
-    #         self.clf.eval()
-    #         hiddle_list = []
-    #         for model in self.model_list:
-    #             model.eval()
-    #             _, hiddle = model(self.graph.x)
-    #             hiddle_list.append(hiddle)
-    #         hiddle = self.fusion_feature(hiddle_list, self.fusion_strategy)
-    #         test_auc = self.clf.test_auc(hiddle)
-    #         return test_auc, best_val_auc

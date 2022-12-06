@@ -120,10 +120,6 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
 
     return texts
 
-def plot_fusion_heatmap():
-    
-    pass
-
 if __name__ == "__main__":
     param2per1 = read_param2per("./result/param2performance_weibo_min_gcngat.txt")
     param2per2 = read_param2per("./result/param2performance_weibo_syn_gcngat.txt")
@@ -136,16 +132,6 @@ if __name__ == "__main__":
     # np.random.seed(19680801)
     fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(2, 2, figsize=(7, 6))
 
-    # Replicate the above example with a different font size and colormap.
-
-    # im, _ = heatmap(harvest, vegetables, farmers, ax=ax,
-    #                 cmap="Wistia", cbarlabel="harvest [t/year]")
-    # annotate_heatmap(im, valfmt="{x:.1f}", size=7)
-
-    # Create some new data, give further arguments to imshow (vmin),
-    # use an integer format on the annotations and provide some colors.
-
-    # data = np.random.randint(2, 100, size=(7, 7))
     y = ["{}".format(i) for i in range(11)]
     x = ["{}".format(i) for i in range(1,11)]
     im, _ = heatmap(data1, y, x, ax=ax1, vmin=0.93,vmax=0.98,

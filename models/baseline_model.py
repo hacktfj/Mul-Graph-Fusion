@@ -14,11 +14,17 @@ from models.BWGNN_model import BWGNN_em
 from models.GAT_model import GAT
 from models.GCN_model import GCN
 from models.GIN_model import GIN
+from pyod.models.iforest import IForest
+from pyod.models.lof import LOF
+from pyod.models.knn import KNN
+from pyod.models.ocsvm import OCSVM 
+from pyod.models.hbos import HBOS
+from sklearn.metrics import roc_auc_score
 
 import warnings
 warnings.filterwarnings("ignore")
 
-model_list = ["lof", "oc-svm", "hbos", "bwgnn", "gin", "gat", "gcn", "dominate", "dci"]
+model_list = ["iforest","lof", "hbos", "oc-svm", "bwgnn", "gin", "gat", "gcn", ]
 class Baseline(nn.Module):
 
     def __init__(self, model_name, in_feats, h_feats, num_classes, graph, lr = 5e-3, epochs=50, verbose=1):
@@ -39,12 +45,18 @@ class Baseline(nn.Module):
         self.device = graph.x.device
         self.epochs = epochs
         self.verbose = verbose
-        if model_name == "lof":
-            pass
-        elif model_name == "oc-svm":
-            pass
+        if model_name == "iforest":
+            self.model = IForest()
+            # self.graph = self.graph.to("cpu")
+        elif model_name == "lof":
+            self.model = LOF()
+            # self.graph = self.graph.to("cpu")
         elif model_name == "hbos":
-            pass
+            self.model = HBOS()
+            # self.graph = self.graph.to("cpu")
+        elif model_name == "oc-svm":
+            self.model = OCSVM()
+            # self.graph = self.graph.to("cpu")
         elif model_name == "bwgnn":
             dgl_graph = pyg_to_dgl(graph)
             self.model = BWGNN_em(in_feats, h_feats, num_classes, dgl_graph)
@@ -58,18 +70,26 @@ class Baseline(nn.Module):
         elif model_name == "gcn":
             self.model = GCN(in_feats, h_feats, num_classes, self.graph)
             self.optimizer = Adam(self.model.parameters(), lr = self.lr)
-        elif model_name == "dominate":
-            pass
-        elif model_name == "dci":
-            pass
     
     def fit(self):
-        if self.model_name == "lof":
-            pass
+        if self.model_name == "iforest" or self.model_name == "lof" or self.model_name == "hbos":
+            self.model.fit(self.graph.x[self.graph.train_mask])
+            y_val_scores = self.model.decision_function(self.graph.x[self.graph.val_mask])
+            y_test_scores = self.model.decision_function(self.graph.x[self.graph.test_mask])
+            val_auc = roc_auc_score(self.graph.y[self.graph.val_mask], y_val_scores)
+            test_auc = roc_auc_score(self.graph.y[self.graph.test_mask], y_test_scores)
+            if self.verbose:
+                print (f"Test auc: {test_auc}; Val auc: {val_auc}")
+            return test_auc, val_auc
         elif self.model_name == "oc-svm":
-            pass
-        elif self.model_name == "hbos":
-            pass
+            self.model.fit(self.graph.x[self.graph.train_mask],self.graph.y[self.graph.train_mask])
+            y_val_scores = self.model.decision_function(self.graph.x[self.graph.val_mask])
+            y_test_scores = self.model.decision_function(self.graph.x[self.graph.test_mask])
+            val_auc = roc_auc_score(self.graph.y[self.graph.val_mask], y_val_scores)
+            test_auc = roc_auc_score(self.graph.y[self.graph.test_mask], y_test_scores)
+            if self.verbose:
+                print (f"Test auc: {test_auc}; Val auc: {val_auc}")
+            return test_auc, val_auc
         elif self.model_name == "bwgnn":
             best_auc = self.train(self.model, self.optimizer, self.graph, epochs=self.epochs)
             auc = self.test_auc(self.model, self.graph)
@@ -94,8 +114,28 @@ class Baseline(nn.Module):
             if self.verbose:
                 print (f"Test auc: {auc}; Val best auc: {best_auc}")
             return auc, best_auc
-        elif self.model_name == "dominate":
-            pass
+    
+    def fit_for_tsne(self):
+        self.train_for_tsne(self.model, self.optimizer, self.graph, epochs=self.epochs)
+        self.model.eval()
+        logits, _ = self.model(self.graph.x)
+        return logits
+    
+    def decision_for_tsne(self, graph):
+        self.model.eval()
+        logits, _ = self.model(graph.x)
+        return logits
+
+    def train_for_tsne(self, model, optimizer, data, epochs, patience=20):
+        best_val_auc = 0
+        early_stop = EarlyStopping(patience=patience)
+        for epoch in range(epochs):
+            model.train()
+            logits, _ = model(data.x)
+            train_loss = cross_entropy(logits, data.y, weight=torch.tensor([1.0, self.a_weight],device=self.device))
+            optimizer.zero_grad()
+            train_loss.backward()
+            optimizer.step()
 
     def train(self, model, optimizer, data, epochs, patience=20):
         best_val_auc = 0
