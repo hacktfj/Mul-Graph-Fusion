@@ -56,7 +56,7 @@ Baseline gat; dataset weibo; anomaly type min; test auc mean 0.8940910684577416;
 Baseline gcn; dataset weibo; anomaly type min; test auc mean 0.9741125366375906; test auc std 0.0025140641307703345; best val auc mean 0.9824264481227871
 Baseline iforest; dataset books; anomaly type min; test auc mean 0.6008674698795181; test auc std 0.02104463042522623; best val auc mean 0.6284134881149807
 Baseline lof; dataset books; anomaly type min; test auc mean 0.4505395683453237; test auc std 0.0; best val auc mean 0.4330024813895782
-Baseline hbos; dataset books; anomaly type min; test auc mean 0.7472551602986386; test auc std 0.0; best val auc mean 0.6050304035378662
+Baseline hbos; dataset books; anomaly type min; test auc mean 0.7072551602986386; test auc std 0.0; best val auc mean 0.6050304035378662
 Baseline oc-svm; dataset books; anomaly type min; test auc mean 0.14845605700712589; test auc std 0.0; best val auc mean 0.27365958978049654
 Baseline bwgnn; dataset books; anomaly type min; test auc mean 0.5653551251008878; test auc std 0.06775108727620603; best val auc mean 0.7732098765432099
 Baseline gin; dataset books; anomaly type min; test auc mean 0.5; test auc std 0.0; best val auc mean 0.5219292803970224
