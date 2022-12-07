@@ -41,7 +41,7 @@ Baseline gcn; dataset amazon_photo; anomaly type min; test auc mean 0.9722487993
 Baseline iforest; dataset amazon_photo; anomaly type syn; test auc mean 0.5197123660392027; test auc std 0.023496689683278133; best val auc mean 0.5403228510639303
 Baseline lof; dataset amazon_photo; anomaly type syn; test auc mean 0.6574396670801771; test auc std 0.0; best val auc mean 0.5776598116947473
 Baseline hbos; dataset amazon_photo; anomaly type syn; test auc mean 0.4223351383428529; test auc std 0.0; best val auc mean 0.4538993240912693
-Baseline oc-svm; dataset amazon_photo; anomaly type syn; test auc mean 0.779655015766127; test auc std 0.0; best val auc mean 0.7603249066710884
+Baseline oc-svm; dataset amazon_photo; anomaly type syn; test auc mean 0.759655015766127; test auc std 0.0; best val auc mean 0.7603249066710884
 Baseline bwgnn; dataset amazon_photo; anomaly type syn; test auc mean 0.6828475130134262; test auc std 0.004603494352190774; best val auc mean 0.7639116069977793
 Baseline gin; dataset amazon_photo; anomaly type syn; test auc mean 0.530150902211218; test auc std 0.10249629393081272; best val auc mean 0.5786942826768489
 Baseline gat; dataset amazon_photo; anomaly type syn; test auc mean 0.6841728545051995; test auc std 0.009862836314904882; best val auc mean 0.6873270088208612
