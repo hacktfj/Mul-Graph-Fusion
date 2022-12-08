@@ -149,7 +149,7 @@ if __name__ == "__main__":
     im, _ = heatmap(data4, y, x, ax=ax4, vmin=0.61,vmax=0.63,
                     cmap="inferno_r", cbarlabel="")
     annotate_heatmap(im, valfmt="{x:d}", size=5, threshold=0.61, textcolors=("green","red"))
-    plt.suptitle("Detection rate")
+    # plt.suptitle("Detection rate")
     plt.savefig(str('./result/fusion.eps'), bbox_inches='tight', format='eps')
     plt.show()
 

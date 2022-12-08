@@ -71,7 +71,7 @@ for i, offset in enumerate(clusters_separation):
     np.random.seed(42)
 
     # Fit the model
-    plt.figure(figsize=(15, 8))
+    plt.figure(figsize=(15, 6))
     for i, (clf_name, clf) in enumerate(classifiers.items()):
         print()
         print(i + 1, 'fitting', clf_name)
@@ -119,6 +119,6 @@ for i, offset in enumerate(clusters_separation):
         subplot.set_xlim((-7, 7))
         subplot.set_ylim((-7, 7))
     plt.subplots_adjust(0.04, 0.1, 0.96, 0.94, 0.1, 0.26)
-    plt.suptitle("Decision Boundary for Varying Algorithms")
+    # plt.suptitle("Decision Boundary for Varying Algorithms")
 plt.savefig(str('./result/tnse.eps'), bbox_inches="tight", format="eps")
 plt.show()
