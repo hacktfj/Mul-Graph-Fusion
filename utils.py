@@ -69,35 +69,3 @@ def feature_normalize(feature, axis=1, eps=1e-10):
         mean = feature.mean(axis=axis).reshape(1,-1)
         std = feature.std(axis=axis).reshape(1,-1)
     return (feature - mean) / (std + eps)
-
-def feature_fusion(feature_list, weight,strategy=0):
-    """been detached feature list."""
-    feature_list_ = []
-    # weight = len(feature_list)*torch.softmax(*weight, dim = 0)
-    if strategy == 0:
-        for i, feature in enumerate(feature_list):
-            feature_list_.append(weight[0][i] * feature_normalize(feature,axis=0))
-        hiddle = torch.concat(feature_list_, axis=1)
-        return hiddle
-    else:
-        pass
-
-def read_param2per(file_path):
-    line_array = []
-    with open(file_path,"r") as f:
-        f_line_list = f.readlines()
-        for f_line in f_line_list:
-            f_num = f_line.split(" ")
-            f_num = np.array(f_num).astype(float)
-            line_array.append(f_num)
-        line_array = np.array(line_array)
-    return line_array
-
-def read_single():
-    pass
-def read_fusion():
-    pass
-
-if __name__ == "__main__":
-    param2per = read_param2per("./result/param2performance_weibo_min_gatbw.txt")
-    print (param2per[:,2].reshape(11,10))

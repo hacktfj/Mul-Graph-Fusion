@@ -107,7 +107,7 @@ class Fusion_model(nn.Module):
     
     def fusion_feature(self, hiddle_list, fusion_strategy):
         """what does the fusion means detail.
-        fusion_strategy == 0: no fusion.
+        fusion_strategy == 0: no fusion. But under the same scale.
         fusion_strategy == 1: fusion feature.
         fusion_strategy == 2: fusion view feature.
         fusion_strategy == 3: fusion feature and view feature.
@@ -118,6 +118,8 @@ class Fusion_model(nn.Module):
         """
         hiddle = None
         if fusion_strategy == 0:
+            for i, hiddle in enumerate(hiddle_list):
+                hiddle_list[i] = feature_normalize(hiddle_list[i],axis=0)
             hiddle = torch.concat(hiddle_list, axis=1)
         elif fusion_strategy == 1:
             hiddle = torch.concat(hiddle_list, axis=1)
@@ -231,7 +233,7 @@ class Fusion_model(nn.Module):
         if early_stop.early_stop == True:
             print ("Early stopping")
         if self.verbose:
-            print (f"Stage two, Model name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Epoch {epoch}/{self.epochs_fine}, Val auc: {val_auc}")
+            print (f"Stage two, Model name: {self.model_name_list}, loss oriented: {self.loss_oriented}; Val auc: {val_auc}")
         
         self.loss.eval()
         hiddle_list = []
