@@ -24,15 +24,15 @@ python run_baseline.py
 ```
 Likewise, run_feature_level get the result of fusion on the feature level.
 
-* The series of `plot with something` files generates the figures to observe tendency in data.
-Run like above, for example:
+* The series of `plot with something` files generates the figures for observing tendency in data.
+Run like below, for example:
 ```python
 python plot_for_feature_level.py
 ```
 
 **NOTES**:
-1. For simplicity, we do not use the argument parser. Just rewrite the globle hyper-parameters at the top of files to change the dataset or something matters.
-2. We run with NVIDIA GeForce RTX 3080 laptop GPU. The runnning time is no more than three hours for every files in 3080 case. 
+1. For simplicity, we do not use the argument parser to run. Just rewrite the globle hyper-parameters at the top of files to change the dataset or something matters.
+2. We run with NVIDIA GeForce RTX 3080 laptop GPU. The runnning time is no more than three hours for each file in 3080 case. 
 
 ### Results
 ![dataset](images/dataset.png)
