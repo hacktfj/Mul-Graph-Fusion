@@ -37,7 +37,7 @@ python plot_for_feature_level.py
 ### Results
 ![dataset](images/dataset.png)
 ![result](images/result.png)
-<img src="images/heat_map.png" width="450"/>  <img src="images/plot.png" width="450"/>
+<img src="images/heat_map.png" width="400"/>  <img src="images/plot.png" width="400"/>
 
 ### Citation
 ```html
