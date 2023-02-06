@@ -30,6 +30,8 @@ Run like below, for example:
 python plot_for_feature_level.py
 ```
 
+* The `utils.py` records commonly used function. The `dataset.py` manages the data, including format conversion, anomaly generation etc. `early_stop.py` provides earlying stop service, which have 20 epochs waiting patience. `param2performance_gcngat.py` acquires the data of heat map of the fusion model in the paper. 
+
 **NOTES**:
 1. For simplicity, we do not use the argument parser to run. Just rewrite the globle hyper-parameters at the top of files to change the dataset or something matters.
 2. We run with NVIDIA GeForce RTX 3080 laptop GPU. The runnning time is no more than three hours for each file in 3080 case. 

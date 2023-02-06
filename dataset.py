@@ -13,7 +13,7 @@ from pygod.utils import load_data
 import warnings
 import pandas
 
-dataset_ava_list = ["pubmed", "amazon_computer","amazon_photo", "Weibo","books", "enron"]
+dataset_ava_list = ["pubmed", "amazon_computer","amazon_photo", "Weibo","books"]
 
 class pyg_dataset():
     def __init__(self, dataset_name: str = "cora", dataset_spilt: Union[list,Tuple] = [0.6,0.2,0.2],anomaly_type: Optional[str] = None, anomaly_ratio: float=0.1, transform: bool = True) -> None:
@@ -40,7 +40,7 @@ class pyg_dataset():
         
         self.transform = T.NormalizeFeatures() if transform == True else None
 
-        if self.dataset_name.lower() == "cora" or self.dataset_name.lower() == "citeseer" or self.dataset_name.lower() == "pubmed":
+        if self.dataset_name.lower() == "pubmed":
             self.dataset = Planetoid(f"./data/{self.dataset_name.lower()}",f"{self.dataset_name.lower()}",transform=self.transform)[0]
         elif self.dataset_name.lower() == "karate":
             karate = KarateClub().data
@@ -60,16 +60,6 @@ class pyg_dataset():
             temp = load_data(f"{self.dataset_name.lower()}",f"./data/{self.dataset_name.lower()}")
             position = 1
             self.dataset = Data(x=temp.x, edge_index=temp.edge_index,y=torch.tensor(temp.y, dtype=torch.long),train_mask=position,val_mask=position,test_mask=position)
-        elif self.dataset_name.lower() == "fraud_yelp":
-            graph = FraudYelpDataset("data/fraud_yelp")[0]
-            graph = dgl.to_homogeneous(graph, ndata=['feature', 'label', 'train_mask', 'val_mask', 'test_mask'])
-            graph = dgl.add_self_loop(graph)
-            self.dataset = Data(x=graph.ndata['feature'],y=graph.ndata["label"].to(torch.long),edge_index=torch.stack(graph.edges(),dim=0),train_mask=graph.ndata["train_mask"].to(torch.bool),val_mask=graph.ndata["val_mask"].to(torch.bool),test_mask=graph.ndata["test_mask"].to(torch.bool))
-        elif self.dataset_name.lower() == "fraud_amazon":
-            graph = FraudAmazonDataset("data/fraud_amazon")[0]
-            graph = dgl.to_homogeneous(graph, ndata=['feature', 'label', 'train_mask', 'val_mask', 'test_mask'])
-            graph = dgl.add_self_loop(graph)
-            self.dataset = Data(x=graph.ndata['feature'],y=graph.ndata["label"].to(torch.long),edge_index=torch.stack(graph.edges(),dim=0),train_mask=graph.ndata["train_mask"].to(torch.bool),val_mask=graph.ndata["val_mask"].to(torch.bool),test_mask=graph.ndata["test_mask"].to(torch.bool))
         else:
             warnings.WarningMessage(f"Dataset wrong, {self.dataset_name}s are not considered in the experiment; \
                 {dataset_ava_list} is availble")
